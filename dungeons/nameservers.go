@@ -1,6 +1,10 @@
 package dungeons
 
-import "net"
+import (
+	"fmt"
+	"log"
+	"net"
+)
 
 func GetDNSServers(domain string) []string {
 	var nameservers []string
@@ -9,4 +13,12 @@ func GetDNSServers(domain string) []string {
 		nameservers = append(nameservers, ns.Host)
 	}
 	return nameservers
+}
+
+func Host(domain string) {
+	hosts, err := net.LookupHost(domain)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(hosts)
 }

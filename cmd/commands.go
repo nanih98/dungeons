@@ -23,6 +23,8 @@ func Nameservers(domain *string) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			nameservers := dungeons.GetDNSServers(*domain)
 			fmt.Println(nameservers)
+			fmt.Println("Checking if status.edenor.com exists...")
+			dungeons.Host("status.edenor.com")
 		},
 	}
 }
