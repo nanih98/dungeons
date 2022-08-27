@@ -1,0 +1,2 @@
+# crazydns
+Massive DNS requests
