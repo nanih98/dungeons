@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net"
+
+	"github.com/nanih98/dungeons/utils"
 )
 
-func GetDNSServers(domain string) []string {
+// GetDNSServers is a function that return the nameservers of the given domain
+func getDNSServers(domain string) []string {
 	var nameservers []string
 	nameserver, _ := net.LookupNS(domain)
 	for _, ns := range nameserver {
@@ -15,10 +18,29 @@ func GetDNSServers(domain string) []string {
 	return nameservers
 }
 
-func Host(domain string) {
-	hosts, err := net.LookupHost(domain)
+// GetDNSIpv4 is a function that return the nameserver Ipv4 and Ipv6
+func getDNSIpv4(nameserver string) (string, string) {
+	ip, err := net.LookupIP(nameserver)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
-	fmt.Println(hosts)
+	return fmt.Sprintf("%s", ip[0]), fmt.Sprintf("%s", ip[1])
+}
+
+// DNSInfo prints the nameservers(+Ipv4) of the given domain
+func DNSInfo(domain string) {
+	log.Println("Checking nameservers for:", domain)
+	var entry []string
+	nameservers := getDNSServers(domain)
+
+	w := utils.TabWriter()
+	fmt.Fprintln(w, "Nameserver\tIpv4\tIpv6")
+
+	for _, nameserver := range nameservers {
+		ipv4, ipv6 := getDNSIpv4(nameserver)
+		entry = append(entry, nameserver, ipv4, ipv6)
+		fmt.Fprintln(w, nameserver, "\t", ipv4, "\t", ipv6)
+		entry = nil // flush the slice
+	}
+	w.Flush()
 }

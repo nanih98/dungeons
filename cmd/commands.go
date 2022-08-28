@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"runtime"
 
 	"github.com/nanih98/dungeons/dungeons"
@@ -21,10 +20,7 @@ func Nameservers(domain *string) *cobra.Command {
 		Short: "Check nameservers to the given domain",
 		Long:  "Check the nameservers of the given domain in the cli",
 		Run: func(cmd *cobra.Command, args []string) {
-			nameservers := dungeons.GetDNSServers(*domain)
-			fmt.Println(nameservers)
-			fmt.Println("Checking if status.edenor.com exists...")
-			dungeons.Host("status.edenor.com")
+			dungeons.DNSInfo(*domain)
 		},
 	}
 }

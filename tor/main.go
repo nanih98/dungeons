@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -38,10 +39,10 @@ func main() {
 	defer resp.Body.Close()
 
 	// Read response
-	// body, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	log.Fatal("Error reading body of response.", err)
-	// }
-	//log.Println(string(body))
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal("Error reading body of response.", err)
+	}
+	log.Println(string(body))
 	log.Println("Return status code:", resp.StatusCode)
 }
