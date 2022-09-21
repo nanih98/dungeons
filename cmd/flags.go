@@ -12,11 +12,11 @@ var (
 )
 
 func init() {
-	nameservers := Nameservers(&domain)
+	info := Info(&domain)
 
-	rootCmd.AddCommand(nameservers)
+	rootCmd.AddCommand(info)
 
 	// Nameservers
-	nameservers.PersistentFlags().StringVar(&domain, "domain", "", "Enter the domain")
-	nameservers.MarkPersistentFlagRequired("domain")
+	info.PersistentFlags().StringVar(&domain, "domain", "", "Enter the domain")
+	info.MarkPersistentFlagRequired("domain")
 }

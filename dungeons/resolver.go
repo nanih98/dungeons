@@ -7,9 +7,8 @@ import (
 	"time"
 )
 
-// CustomResolver is a function that...
-func CustomResolver() {
-	// Custom resolver
+// CustomResolver
+func CustomResolver(server string) *net.Resolver {
 	r := &net.Resolver{
 		PreferGo: true,
 		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
@@ -26,5 +25,5 @@ func CustomResolver() {
 		fmt.Println(err)
 	}
 
-	fmt.Println(ip)
+	return r
 }

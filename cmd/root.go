@@ -1,6 +1,5 @@
 /*
 Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -15,9 +14,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "dungeons",
 	Short: "Massive DNS requests",
-	Long:  `Massive DNS requests. HA in DNS nameservers`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
+	Long:  `Massive DNS requests. DNS fuzzing`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},
