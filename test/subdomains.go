@@ -68,17 +68,17 @@ func fetch(subdomains []string, workers int) {
 }
 
 func resolver(subdomain string) (string, error) {
-	//resolver := customResolver("205.251.197.168:53")
+	r := customResolver("8.8.8.8:53")
 
-	r := &net.Resolver{
-		PreferGo: true,
-		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-			d := net.Dialer{
-				Timeout: time.Millisecond * time.Duration(10000),
-			}
-			return d.DialContext(ctx, network, "205.251.197.168:53")
-		},
-	}
+	// r := &net.Resolver{
+	// 	PreferGo: true,
+	// 	Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+	// 		d := net.Dialer{
+	// 			Timeout: time.Millisecond * time.Duration(10000),
+	// 		}
+	// 		return d.DialContext(ctx, network, "8.8.8.8:53")
+	// 	},
+	// }
 
 	fullDomain := subdomain + ".edenor.com"
 
@@ -91,18 +91,18 @@ func resolver(subdomain string) (string, error) {
 	return fmt.Sprintf("Host found %s with the IP(s) %v", fullDomain, ip), nil
 }
 
-// func customResolver(nameserver string) *net.Resolver {
-// 	r := &net.Resolver{
-// 		PreferGo: true,
-// 		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-// 			d := net.Dialer{
-// 				Timeout: time.Millisecond * time.Duration(10000),
-// 			}
-// 			return d.DialContext(ctx, network, nameserver)
-// 		},
-// 	}
-// 	return r
-// }
+func customResolver(nameserver string) *net.Resolver {
+	r := &net.Resolver{
+		PreferGo: true,
+		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+			d := net.Dialer{
+				Timeout: time.Millisecond * time.Duration(10000),
+			}
+			return d.DialContext(ctx, network, nameserver)
+		},
+	}
+	return r
+}
 
 func readFile() []string {
 	log.Println("Reading subdomains from /usr/local/share/SecLists/Discovery/DNS/subdomains-top1million-20000.txt")

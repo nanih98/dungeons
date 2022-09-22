@@ -2,10 +2,21 @@ package dungeons
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"time"
 )
+
+func ResolverIPS(domain string) []string {
+	var ips []string
+
+	nameservers := GetDNSServers(domain)
+
+	for _, nameserver := range nameservers {
+		ipv4, _ := GetDNSIPS(nameserver)
+		ips = append(ips, ipv4)
+	}
+	return ips
+}
 
 // CustomResolver
 func CustomResolver(server string) *net.Resolver {
@@ -15,15 +26,15 @@ func CustomResolver(server string) *net.Resolver {
 			d := net.Dialer{
 				Timeout: time.Millisecond * time.Duration(10000),
 			}
-			return d.DialContext(ctx, network, "1.1.1.1:53")
+			return d.DialContext(ctx, network, server+":53")
 		},
 	}
 
-	ip, err := r.LookupHost(context.Background(), "ñiñiñiñ.google.com")
+	// ip, err := r.LookupHost(context.Background(), "ñiñiñiñ.google.com")
 
-	if err != nil {
-		fmt.Println(err)
-	}
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
 	return r
 }

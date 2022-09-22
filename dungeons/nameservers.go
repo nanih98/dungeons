@@ -9,7 +9,7 @@ import (
 )
 
 // GetDNSServers is a function that return the nameservers of the given domain
-func getDNSServers(domain string) []string {
+func GetDNSServers(domain string) []string {
 	var nameservers []string
 	nameserver, _ := net.LookupNS(domain)
 	for _, ns := range nameserver {
@@ -19,7 +19,7 @@ func getDNSServers(domain string) []string {
 }
 
 // GetDNSIpv4 is a function that return the nameserver Ipv4 and Ipv6
-func getDNSIpv4(nameserver string) (string, string) {
+func GetDNSIPS(nameserver string) (string, string) {
 	ip, err := net.LookupIP(nameserver)
 	if err != nil {
 		log.Println(err)
@@ -31,13 +31,13 @@ func getDNSIpv4(nameserver string) (string, string) {
 func DNSInfo(domain string) {
 	log.Println("Checking nameservers for:", domain)
 	var entry []string
-	nameservers := getDNSServers(domain)
+	nameservers := GetDNSServers(domain)
 
 	w := utils.TabWriter()
 	fmt.Fprintln(w, "Nameserver\tIpv4\tIpv6")
 
 	for _, nameserver := range nameservers {
-		ipv4, ipv6 := getDNSIpv4(nameserver)
+		ipv4, ipv6 := GetDNSIPS(nameserver)
 		entry = append(entry, nameserver, ipv4, ipv6)
 		fmt.Fprintln(w, nameserver, "\t", ipv4, "\t", ipv6)
 		entry = nil // flush the slice
