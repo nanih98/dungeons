@@ -1,14 +1,8 @@
 package cmd
 
 var (
-	profileName string
-	startURL    string
-	region      string
-	level       string
-)
-
-var (
-	domain string
+	domain  string
+	workers int
 )
 
 func init() {
@@ -18,10 +12,14 @@ func init() {
 	rootCmd.AddCommand(info)
 	rootCmd.AddCommand(fuzz)
 
-	// Nameservers
+	// Info
 	info.PersistentFlags().StringVar(&domain, "domain", "", "Enter the domain")
-	info.MarkPersistentFlagRequired("domain")
 
+	// Fuzzer
 	fuzz.PersistentFlags().StringVar(&domain, "domain", "", "Enter the domain")
+	fuzz.PersistentFlags().IntVar(&workers, "workers", 10, "Enter the max workers (threads)")
+
+	// Required flags
+	info.MarkPersistentFlagRequired("domain")
 	fuzz.MarkPersistentFlagRequired("domain")
 }

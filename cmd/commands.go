@@ -21,7 +21,7 @@ func Info(domain *string) *cobra.Command {
 		Short: "Info of the nameservers to the given domain",
 		Long:  "Check the nameservers of the given domain in the cli",
 		Run: func(cmd *cobra.Command, args []string) {
-			dungeons.DNSInfo(*domain)
+			dungeons.Info(*domain)
 		},
 	}
 }
