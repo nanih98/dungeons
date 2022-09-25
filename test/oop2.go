@@ -1,56 +1,21 @@
-// package main
-
-// import "fmt"
-
-// type contactInfo struct {
-// 	email   string
-// 	zipcode string
-// }
-
-// type person struct {
-// 	firstName string
-// 	lastName  string
-// 	contactInfo
-// }
-
-// func (p person) print() {
-// 	fmt.Printf("%+v", p)
-// }
-
-// func (p *person) updateFirstName(name string) {
-// 	*&p.firstName = name
-// }
-
-// func main() {
-// 	dani := person{
-// 		firstName: "Daniel",
-// 		lastName:  "Cascales",
-// 		contactInfo: contactInfo{
-// 			email:   "dani@test.com",
-// 			zipcode: "08905",
-// 		},
-// 	}
-// 	dani.updateFirstName("hola")
-// 	dani.print()
-// }
-
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 )
 
 type Data struct {
-	Domain      string
-	Nameservers []Nameservers
+	Domain      string        `json:"domain"`
+	Nameservers []Nameservers `json:"nameservers"`
 }
 
 type Nameservers struct {
-	CNAME string
-	IPV4  string
-	IPV6  string
+	CNAME string `json:"cname"`
+	IPV4  string `json:"ipv4"`
+	IPV6  string `json:"ipv6"`
 }
 
 func GetIPV4(server string) string {
@@ -79,6 +44,14 @@ func (d *Data) GetNameservers() []string {
 	return nameservers
 }
 
+func (d *Data) Print() []byte {
+	marshal, err := json.MarshalIndent(*d, "", "  ")
+	if err != nil {
+		log.Fatal("Error marshalling json...")
+	}
+	return marshal
+}
+
 func main() {
 	start := new(Data)
 
@@ -91,6 +64,7 @@ func main() {
 			IPV4:  GetIPV4(server),
 			IPV6:  GetIPV6(server),
 		}
-		fmt.Println(serverInfo)
+		start.Nameservers = append(start.Nameservers, serverInfo)
 	}
+	fmt.Printf("%s", start.Print())
 }
