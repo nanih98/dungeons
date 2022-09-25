@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 )
 
 type Data struct {
@@ -44,27 +45,39 @@ func (d *Data) GetNameservers() []string {
 	return nameservers
 }
 
-func (d *Data) Print() []byte {
+func (d *Data) AppendNameserverData(server string) {
+	serverInfo := Nameservers{
+		CNAME: server,
+		IPV4:  GetIPV4(server),
+		IPV6:  GetIPV6(server),
+	}
+	d.Nameservers = append(d.Nameservers, serverInfo)
+}
+
+func (d *Data) PrintData() {
 	marshal, err := json.MarshalIndent(*d, "", "  ")
 	if err != nil {
 		log.Fatal("Error marshalling json...")
 	}
-	return marshal
+	fmt.Printf("%s", marshal)
 }
 
 func main() {
-	start := new(Data)
+	target := new(Data)
 
-	start.Domain = "google.com"
-	nameservers := start.GetNameservers()
+	target.Domain = "google.com"
+	nameservers := target.GetNameservers()
+	var wg sync.WaitGroup
 
 	for _, server := range nameservers {
-		serverInfo := Nameservers{
-			CNAME: server,
-			IPV4:  GetIPV4(server),
-			IPV6:  GetIPV6(server),
-		}
-		start.Nameservers = append(start.Nameservers, serverInfo)
+		wg.Add(1)
+		go func(server string) {
+			defer wg.Done()
+			target.AppendNameserverData(server)
+		}(server)
 	}
-	fmt.Printf("%s", start.Print())
+	wg.Wait()
+
+	// Print the final result
+	target.PrintData()
 }
