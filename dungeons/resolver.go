@@ -6,18 +6,6 @@ import (
 	"time"
 )
 
-func ResolverIPS(domain string) []string {
-	var ips []string
-
-	nameservers := GetDNSServers(domain)
-
-	for _, nameserver := range nameservers {
-		ipv4, _ := GetDNSIPS(nameserver)
-		ips = append(ips, ipv4)
-	}
-	return ips
-}
-
 // CustomResolver
 func CustomResolver(server string) *net.Resolver {
 	r := &net.Resolver{

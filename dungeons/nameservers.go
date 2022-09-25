@@ -31,6 +31,19 @@ func GetDNSIPS(nameserver string) (string, string) {
 	return fmt.Sprintf("%s", ip[0]), "Null"
 }
 
+// ResolverIPV4
+func ResolverIPV4(domain string) []string {
+	var ips []string
+
+	nameservers := GetDNSServers(domain)
+
+	for _, nameserver := range nameservers {
+		ipv4, _ := GetDNSIPS(nameserver)
+		ips = append(ips, ipv4)
+	}
+	return ips
+}
+
 // Info prints information about the nameservers
 func Info(domain string) {
 	log.Printf("Checking nameservers for: %s \n\n", domain)

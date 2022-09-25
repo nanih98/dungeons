@@ -1,10 +1,10 @@
 package cmd
 
 import (
+	"fmt"
 	"runtime"
 
 	"github.com/nanih98/dungeons/dungeons"
-	"github.com/nanih98/dungeons/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -32,9 +32,10 @@ func Fuzz(domain *string) *cobra.Command {
 		Short: "Start massive requests to all the nameservers.",
 		Long:  "Start massive requests to all the nameservers of the given domain using a dictionary",
 		Run: func(cmd *cobra.Command, args []string) {
-			ips := dungeons.ResolverIPS(*domain)
-			subdomains := utils.ReadFile()
-			dungeons.Fetch(subdomains, ips, 20)
+			fmt.Println("test")
+			// nameservers := dungeons.GetDNSServers(*domain)
+			// subdomains := utils.ReadFile()
+			// dungeons.Fetch(subdomains, ips, 20)
 		},
 	}
 }
