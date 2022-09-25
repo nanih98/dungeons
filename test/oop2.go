@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"sync"
+	"text/tabwriter"
 )
 
 type Data struct {
@@ -34,6 +36,20 @@ func GetIPV6(server string) string {
 	}
 
 	return fmt.Sprintf("%v", ip[1])
+}
+
+func (d *Data) PrintTabWriter() {
+	w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', tabwriter.Debug)
+	var entry []string
+	fmt.Println("Scanned domain:", d.Domain)
+	fmt.Fprintln(w, "Nameserver\t Ipv4\t Ipv6")
+
+	for _, nameserver := range d.Nameservers {
+		entry = append(entry, nameserver.CNAME, nameserver.IPV4, nameserver.IPV6)
+		fmt.Fprintln(w, nameserver.CNAME, "\t", nameserver.IPV4, "\t", nameserver.IPV6)
+		entry = nil
+	}
+	w.Flush()
 }
 
 func (d *Data) GetNameservers() []string {
@@ -78,6 +94,9 @@ func main() {
 	}
 	wg.Wait()
 
-	// Print the final result
+	// Print the final result (JSON MODE)
 	target.PrintData()
+	fmt.Println()
+	// Print the final result (TABWRITE MODE)
+	target.PrintTabWriter()
 }
