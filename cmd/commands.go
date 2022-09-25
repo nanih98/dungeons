@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/nanih98/dungeons/dto"
 	"github.com/nanih98/dungeons/dungeons"
 	"github.com/spf13/cobra"
 )
@@ -15,13 +16,13 @@ var (
 	goarch    = runtime.GOARCH
 )
 
-func Info(domain *string) *cobra.Command {
+func Info(domain *string, output *string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "info",
 		Short: "Info of the nameservers to the given domain",
 		Long:  "Check the nameservers of the given domain in the cli",
 		Run: func(cmd *cobra.Command, args []string) {
-			dungeons.Info(*domain)
+			dungeons.Info(*domain, *output)
 		},
 	}
 }
@@ -32,10 +33,12 @@ func Fuzz(domain *string) *cobra.Command {
 		Short: "Start massive requests to all the nameservers.",
 		Long:  "Start massive requests to all the nameservers of the given domain using a dictionary",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("test")
-			// nameservers := dungeons.GetDNSServers(*domain)
-			// subdomains := utils.ReadFile()
-			// dungeons.Fetch(subdomains, ips, 20)
+			target := new(dto.Data)
+			target.Domain = *domain
+			nameservers := target.GetNameservers()
+			for _, server := range nameservers {
+				fmt.Println(dungeons.GetIPV4(server))
+			}
 		},
 	}
 }

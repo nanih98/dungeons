@@ -1,63 +1,107 @@
 package dungeons
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
-
-	"github.com/nanih98/dungeons/utils"
+	"os"
+	"sync"
+	"text/tabwriter"
 )
 
-// GetDNSServers is a function that return the nameservers of the given domain
-func GetDNSServers(domain string) []string {
+// Data structure of the domain and the nameservers information
+type Data struct {
+	Domain      string        `json:"domain"`
+	Nameservers []Nameservers `json:"nameservers"`
+}
+
+// Nameservers struct with the info necessary to operate
+type Nameservers struct {
+	CNAME string `json:"cname"`
+	IPV4  string `json:"ipv4"`
+	IPV6  string `json:"ipv6"`
+}
+
+func GetIPV4(server string) string {
+	ip, err := net.LookupIP(server)
+	if err != nil {
+		log.Println(err)
+	}
+	return fmt.Sprintf("%v", ip[0])
+}
+
+func GetIPV6(server string) string {
+	ip, err := net.LookupIP(server)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return fmt.Sprintf("%v", ip[1])
+}
+
+func (d *Data) PrintTabWriter() {
+	w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', tabwriter.Debug)
+	var entry []string
+	fmt.Println("Scanned domain:", d.Domain)
+	fmt.Fprintln(w, "Nameserver\t Ipv4\t Ipv6")
+
+	for _, nameserver := range d.Nameservers {
+		entry = append(entry, nameserver.CNAME, nameserver.IPV4, nameserver.IPV6)
+		fmt.Fprintln(w, nameserver.CNAME, "\t", nameserver.IPV4, "\t", nameserver.IPV6)
+		entry = nil
+	}
+	w.Flush()
+}
+
+func (d *Data) GetNameservers() []string {
 	var nameservers []string
-	nameserver, _ := net.LookupNS(domain)
+	nameserver, _ := net.LookupNS(d.Domain)
 	for _, ns := range nameserver {
 		nameservers = append(nameservers, ns.Host)
 	}
 	return nameservers
 }
 
-// GetDNSIPS is a function that return the nameserver Ipv4 and Ipv6
-func GetDNSIPS(nameserver string) (string, string) {
-	ip, err := net.LookupIP(nameserver)
+func (d *Data) AppendNameserverData(server string) {
+	serverInfo := Nameservers{
+		CNAME: server,
+		IPV4:  GetIPV4(server),
+		IPV6:  GetIPV6(server),
+	}
+	d.Nameservers = append(d.Nameservers, serverInfo)
+}
+
+func (d *Data) PrintJson() {
+	marshal, err := json.MarshalIndent(*d, "", "  ")
 	if err != nil {
-		log.Println(err)
+		log.Fatal("Error marshalling json...")
 	}
-
-	if len(ip) > 1 {
-		return fmt.Sprintf("%s", ip[0]), fmt.Sprintf("%s", ip[1])
-	}
-	return fmt.Sprintf("%s", ip[0]), "Null"
+	fmt.Printf("%s", marshal)
 }
 
-// ResolverIPV4
-func ResolverIPV4(domain string) []string {
-	var ips []string
+func Info(domain string, outputmode string) {
+	target := new(Data)
 
-	nameservers := GetDNSServers(domain)
+	target.Domain = domain
+	nameservers := target.GetNameservers()
+	var wg sync.WaitGroup
 
-	for _, nameserver := range nameservers {
-		ipv4, _ := GetDNSIPS(nameserver)
-		ips = append(ips, ipv4)
+	for _, server := range nameservers {
+		wg.Add(1)
+		go func(server string) {
+			defer wg.Done()
+			target.AppendNameserverData(server)
+		}(server)
 	}
-	return ips
-}
+	wg.Wait()
 
-// Info prints information about the nameservers
-func Info(domain string) {
-	log.Printf("Checking nameservers for: %s \n\n", domain)
-	var entry []string
-	nameservers := GetDNSServers(domain)
-
-	w := utils.TabWriter()
-	fmt.Fprintln(w, "Nameserver\t Ipv4\t Ipv6")
-
-	for _, nameserver := range nameservers {
-		ipv4, ipv6 := GetDNSIPS(nameserver)
-		entry = append(entry, nameserver, ipv4, ipv6)
-		fmt.Fprintln(w, nameserver, "\t", ipv4, "\t", ipv6)
-		entry = nil
+	switch outputmode {
+	case "tabwriter":
+		target.PrintTabWriter()
+	case "json":
+		target.PrintJson()
+	default:
+		log.Fatal("Outputmode incorrect. Use -output json|tabwriter")
 	}
-	w.Flush()
 }

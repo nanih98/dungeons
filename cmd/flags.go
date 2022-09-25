@@ -3,10 +3,11 @@ package cmd
 var (
 	domain  string
 	workers int
+	output  string
 )
 
 func init() {
-	info := Info(&domain)
+	info := Info(&domain, &output)
 	fuzz := Fuzz(&domain)
 
 	rootCmd.AddCommand(info)
@@ -14,6 +15,7 @@ func init() {
 
 	// Info
 	info.PersistentFlags().StringVar(&domain, "domain", "", "Enter the domain")
+	info.PersistentFlags().StringVar(&output, "output", "tabwriter", "Output mode. Tabwriter or json. Default: tabwriter")
 
 	// Fuzzer
 	fuzz.PersistentFlags().StringVar(&domain, "domain", "", "Enter the domain")
