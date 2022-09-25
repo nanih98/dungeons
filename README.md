@@ -1,3 +1,7 @@
 # dungeons
 
-Massive DNS requests
+## In progress tasks
+
+* Adding multithreads in fuzzer command
+
+## Ulimit

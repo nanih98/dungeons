@@ -8,22 +8,20 @@ import (
 	"os"
 	"sync"
 	"text/tabwriter"
-
-	"github.com/nanih98/dungeons/dto"
 )
 
 // // Data structure of the domain and the nameservers information
-// type Data struct {
-// 	Domain      string        `json:"domain"`
-// 	Nameservers []Nameservers `json:"nameservers"`
-// }
+type Data struct {
+	Domain      string        `json:"domain"`
+	Nameservers []Nameservers `json:"nameservers"`
+}
 
-// // Nameservers struct with the info necessary to operate
-// type Nameservers struct {
-// 	CNAME string `json:"cname"`
-// 	IPV4  string `json:"ipv4"`
-// 	IPV6  string `json:"ipv6"`
-// }
+// Nameservers struct with the info necessary to operate
+type Nameservers struct {
+	CNAME string `json:"cname"`
+	IPV4  string `json:"ipv4"`
+	IPV6  string `json:"ipv6"`
+}
 
 func GetIPV4(server string) string {
 	ip, err := net.LookupIP(server)
@@ -42,31 +40,28 @@ func GetIPV6(server string) string {
 	return fmt.Sprintf("%v", ip[1])
 }
 
-func (d *dto.Data) PrintTabWriter() {
+func (d *Data) PrintTabWriter() {
 	w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', tabwriter.Debug)
-	var entry []string
 	fmt.Println("Scanned domain:", d.Domain)
 	fmt.Fprintln(w, "Nameserver\t Ipv4\t Ipv6")
 
 	for _, nameserver := range d.Nameservers {
-		entry = append(entry, nameserver.CNAME, nameserver.IPV4, nameserver.IPV6)
 		fmt.Fprintln(w, nameserver.CNAME, "\t", nameserver.IPV4, "\t", nameserver.IPV6)
-		entry = nil
 	}
 	w.Flush()
 }
 
-func (d *dto.Data) GetNameservers() []string {
+func GetNameservers(domain string) []string {
 	var nameservers []string
-	nameserver, _ := net.LookupNS(d.Domain)
+	nameserver, _ := net.LookupNS(domain)
 	for _, ns := range nameserver {
 		nameservers = append(nameservers, ns.Host)
 	}
 	return nameservers
 }
 
-func (d *dto.Data) AppendNameserverData(server string) {
-	serverInfo := dto.Nameservers{
+func (d *Data) AppendNameserverData(server string) {
+	serverInfo := Nameservers{
 		CNAME: server,
 		IPV4:  GetIPV4(server),
 		IPV6:  GetIPV6(server),
@@ -74,7 +69,7 @@ func (d *dto.Data) AppendNameserverData(server string) {
 	d.Nameservers = append(d.Nameservers, serverInfo)
 }
 
-func (d *dto.Data) PrintJson() {
+func (d *Data) PrintJson() {
 	marshal, err := json.MarshalIndent(*d, "", "  ")
 	if err != nil {
 		log.Fatal("Error marshalling json...")
@@ -83,10 +78,9 @@ func (d *dto.Data) PrintJson() {
 }
 
 func Info(domain string, outputmode string) {
-	target := new(dto.Data)
+	target := new(Data)
 
-	target.Domain = domain
-	nameservers := target.GetNameservers()
+	nameservers := GetNameservers(domain)
 	var wg sync.WaitGroup
 
 	for _, server := range nameservers {

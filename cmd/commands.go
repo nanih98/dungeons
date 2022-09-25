@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 	"runtime"
+	"sync"
 
-	"github.com/nanih98/dungeons/dto"
 	"github.com/nanih98/dungeons/dungeons"
+	"github.com/nanih98/dungeons/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -27,18 +28,26 @@ func Info(domain *string, output *string) *cobra.Command {
 	}
 }
 
-func Fuzz(domain *string) *cobra.Command {
+func Fuzz(domain *string, workers *int, path *string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "fuzz",
 		Short: "Start massive requests to all the nameservers.",
 		Long:  "Start massive requests to all the nameservers of the given domain using a dictionary",
 		Run: func(cmd *cobra.Command, args []string) {
-			target := new(dto.Data)
-			target.Domain = *domain
-			nameservers := target.GetNameservers()
+			nameservers := dungeons.GetNameservers(*domain)
+			subdomains := utils.ReadDictionary(*path)
+			log.Printf("Using %d workers", *workers)
+			var wg sync.WaitGroup
+
 			for _, server := range nameservers {
-				fmt.Println(dungeons.GetIPV4(server))
+				ip := dungeons.GetIPV4(server)
+				wg.Add(1)
+				go func(subdomains []string, ip string) {
+					defer wg.Done()
+					dungeons.Fetch(*domain, subdomains, ip, *workers)
+				}(subdomains, ip)
 			}
+			wg.Wait()
 		},
 	}
 }
