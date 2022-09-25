@@ -8,20 +8,22 @@ import (
 	"os"
 	"sync"
 	"text/tabwriter"
+
+	"github.com/nanih98/dungeons/dto"
 )
 
-// Data structure of the domain and the nameservers information
-type Data struct {
-	Domain      string        `json:"domain"`
-	Nameservers []Nameservers `json:"nameservers"`
-}
+// // Data structure of the domain and the nameservers information
+// type Data struct {
+// 	Domain      string        `json:"domain"`
+// 	Nameservers []Nameservers `json:"nameservers"`
+// }
 
-// Nameservers struct with the info necessary to operate
-type Nameservers struct {
-	CNAME string `json:"cname"`
-	IPV4  string `json:"ipv4"`
-	IPV6  string `json:"ipv6"`
-}
+// // Nameservers struct with the info necessary to operate
+// type Nameservers struct {
+// 	CNAME string `json:"cname"`
+// 	IPV4  string `json:"ipv4"`
+// 	IPV6  string `json:"ipv6"`
+// }
 
 func GetIPV4(server string) string {
 	ip, err := net.LookupIP(server)
@@ -40,7 +42,7 @@ func GetIPV6(server string) string {
 	return fmt.Sprintf("%v", ip[1])
 }
 
-func (d *Data) PrintTabWriter() {
+func (d *dto.Data) PrintTabWriter() {
 	w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', tabwriter.Debug)
 	var entry []string
 	fmt.Println("Scanned domain:", d.Domain)
@@ -54,7 +56,7 @@ func (d *Data) PrintTabWriter() {
 	w.Flush()
 }
 
-func (d *Data) GetNameservers() []string {
+func (d *dto.Data) GetNameservers() []string {
 	var nameservers []string
 	nameserver, _ := net.LookupNS(d.Domain)
 	for _, ns := range nameserver {
@@ -63,8 +65,8 @@ func (d *Data) GetNameservers() []string {
 	return nameservers
 }
 
-func (d *Data) AppendNameserverData(server string) {
-	serverInfo := Nameservers{
+func (d *dto.Data) AppendNameserverData(server string) {
+	serverInfo := dto.Nameservers{
 		CNAME: server,
 		IPV4:  GetIPV4(server),
 		IPV6:  GetIPV6(server),
@@ -72,7 +74,7 @@ func (d *Data) AppendNameserverData(server string) {
 	d.Nameservers = append(d.Nameservers, serverInfo)
 }
 
-func (d *Data) PrintJson() {
+func (d *dto.Data) PrintJson() {
 	marshal, err := json.MarshalIndent(*d, "", "  ")
 	if err != nil {
 		log.Fatal("Error marshalling json...")
@@ -81,7 +83,7 @@ func (d *Data) PrintJson() {
 }
 
 func Info(domain string, outputmode string) {
-	target := new(Data)
+	target := new(dto.Data)
 
 	target.Domain = domain
 	nameservers := target.GetNameservers()
