@@ -4,22 +4,23 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"log"
 	"os"
+
+	"github.com/nanih98/dungeons/logger"
 )
 
 // Read the dictionary and return a list of string with each entry
-func ReadDictionary(path string) []string {
-	log.Println("Reading subdomains from", path)
+func ReadDictionary(log *logger.CustomLogger, dictionary string) []string {
+	log.Info(fmt.Sprintf("Reading subdomains from %s", dictionary))
 	var words []string
 
-	dicitonaryExists := checkFileExists(path)
+	dicitonaryExists := checkFileExists(dictionary)
 
 	if !dicitonaryExists {
-		log.Fatal(fmt.Errorf("Credentials file %s don't exist", path))
+		log.Fatal(fmt.Errorf("Credentials file %s don't exist", dictionary))
 	}
 
-	readFile, err := os.Open(path)
+	readFile, err := os.Open(dictionary)
 
 	if err != nil {
 		fmt.Println(err)

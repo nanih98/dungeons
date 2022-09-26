@@ -3,11 +3,12 @@ package dungeons
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"sync"
 	"text/tabwriter"
+
+	"github.com/nanih98/dungeons/logger"
 )
 
 // // Data structure of the domain and the nameservers information
@@ -23,18 +24,18 @@ type Nameservers struct {
 	IPV6  string `json:"ipv6"`
 }
 
-func GetIPV4(server string) string {
+func GetIPV4(server string, log *logger.CustomLogger) string {
 	ip, err := net.LookupIP(server)
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 	return fmt.Sprintf("%v", ip[0])
 }
 
-func GetIPV6(server string) string {
+func GetIPV6(server string, log *logger.CustomLogger) string {
 	ip, err := net.LookupIP(server)
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 
 	return fmt.Sprintf("%v", ip[1])
@@ -42,8 +43,7 @@ func GetIPV6(server string) string {
 
 func (d *Data) PrintTabWriter() {
 	w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', tabwriter.Debug)
-	fmt.Println("Scanned domain:", d.Domain)
-	fmt.Fprintln(w, "Nameserver\t Ipv4\t Ipv6")
+	fmt.Fprintln(w, "Nameservers\t Ipv4\t Ipv6")
 
 	for _, nameserver := range d.Nameservers {
 		fmt.Fprintln(w, nameserver.CNAME, "\t", nameserver.IPV4, "\t", nameserver.IPV6)
@@ -60,26 +60,25 @@ func GetNameservers(domain string) []string {
 	return nameservers
 }
 
-func (d *Data) AppendNameserverData(server string) {
+func (d *Data) AppendNameserverData(server string, log *logger.CustomLogger) {
 	serverInfo := Nameservers{
 		CNAME: server,
-		IPV4:  GetIPV4(server),
-		IPV6:  GetIPV6(server),
+		IPV4:  GetIPV4(server, log),
+		IPV6:  GetIPV6(server, log),
 	}
 	d.Nameservers = append(d.Nameservers, serverInfo)
 }
 
-func (d *Data) PrintJson() {
+func (d *Data) PrintJson(log *logger.CustomLogger) {
 	marshal, err := json.MarshalIndent(*d, "", "  ")
 	if err != nil {
-		log.Fatal("Error marshalling json...")
+		log.Fatal(err)
 	}
 	fmt.Printf("%s", marshal)
 }
 
-func Info(domain string, outputmode string) {
+func Info(log *logger.CustomLogger, domain, outputmode string) {
 	target := new(Data)
-
 	nameservers := GetNameservers(domain)
 	var wg sync.WaitGroup
 
@@ -87,7 +86,7 @@ func Info(domain string, outputmode string) {
 		wg.Add(1)
 		go func(server string) {
 			defer wg.Done()
-			target.AppendNameserverData(server)
+			target.AppendNameserverData(server, log)
 		}(server)
 	}
 	wg.Wait()
@@ -96,8 +95,8 @@ func Info(domain string, outputmode string) {
 	case "tabwriter":
 		target.PrintTabWriter()
 	case "json":
-		target.PrintJson()
+		target.PrintJson(log)
 	default:
-		log.Fatal("Outputmode incorrect. Use -output json|tabwriter")
+		log.Fatal(fmt.Errorf("Outputmode incorrect. Use -output json|tabwriter"))
 	}
 }

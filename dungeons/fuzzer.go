@@ -24,13 +24,15 @@ func Fetch(domain string, subdomains []string, ip string, workers int) {
 	wg := sync.WaitGroup{}
 	wg.Add(workers)
 
+	r := CustomResolver(ip)
+
 	for i := 0; i < workers; i++ {
 		worker := i
 		go func(worker int, workQueue chan string) {
 			for subdomain := range workQueue {
 				start := time.Now()
 
-				statusMsg, err := requester(domain, subdomain, ip)
+				statusMsg, err := requester(domain, subdomain, r, ip)
 
 				if err != nil {
 					errs = append(errs, err)
@@ -68,9 +70,7 @@ func CustomResolver(server string) *net.Resolver {
 	return r
 }
 
-func requester(domain, subdomain, server string) (RecordInfo, error) {
-	r := CustomResolver(server)
-
+func requester(domain, subdomain string, r *net.Resolver, server string) (RecordInfo, error) {
 	fullDomain := subdomain + "." + domain
 
 	ip, err := r.LookupHost(context.Background(), fullDomain)
