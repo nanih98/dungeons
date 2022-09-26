@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"fmt"
 	"runtime"
+	"sync"
 
 	"github.com/nanih98/dungeons/dungeons"
+	"github.com/nanih98/dungeons/logger"
 	"github.com/nanih98/dungeons/utils"
 	"github.com/spf13/cobra"
 )
@@ -15,26 +18,39 @@ var (
 	goarch    = runtime.GOARCH
 )
 
-func Info(domain *string) *cobra.Command {
+func Info(domain *string, output *string, log *logger.CustomLogger, level *string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "info",
 		Short: "Info of the nameservers to the given domain",
 		Long:  "Check the nameservers of the given domain in the cli",
 		Run: func(cmd *cobra.Command, args []string) {
-			dungeons.Info(*domain)
+			log.LogLevel(*level)
+			dungeons.Info(log, *domain, *output)
 		},
 	}
 }
 
-func Fuzz(domain *string) *cobra.Command {
+func Fuzz(domain *string, workers *int, dictionary *string, log *logger.CustomLogger, level *string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "fuzz",
 		Short: "Start massive requests to all the nameservers.",
 		Long:  "Start massive requests to all the nameservers of the given domain using a dictionary",
 		Run: func(cmd *cobra.Command, args []string) {
-			ips := dungeons.ResolverIPS(*domain)
-			subdomains := utils.ReadFile()
-			dungeons.Fetch(subdomains, ips, 20)
+			log.LogLevel(*level)
+			nameservers := dungeons.GetNameservers(*domain)
+			subdomains := utils.ReadDictionary(log, *dictionary)
+			log.Info(fmt.Sprintf("Using %d workers", *workers))
+			var wg sync.WaitGroup
+
+			for _, server := range nameservers {
+				ip := dungeons.GetIPV4(server, log)
+				wg.Add(1)
+				go func(subdomains []string, ip string) {
+					defer wg.Done()
+					dungeons.Fetch(*domain, subdomains, ip, *workers)
+				}(subdomains, ip)
+			}
+			wg.Wait()
 		},
 	}
 }

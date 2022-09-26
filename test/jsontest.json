@@ -1,0 +1,14 @@
+{
+    "domain": "google.com",
+    "nameservers": [{
+            "cname": "nsq.google.com",
+            "ipv4": "1.1.1.1",
+            "ipv6": "aa::bb:cc:dd:ff:gg"
+        },
+        {
+            "cname": "ns2.google.com",
+            "ipv4": "2.2.2.2",
+            "ipv6": "aa:bb:Gg:dd:Rr:tt"
+        }
+    ]
+}

@@ -1,15 +1,57 @@
 package dungeons
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
 	"net"
+	"os"
+	"sync"
+	"text/tabwriter"
 
-	"github.com/nanih98/dungeons/utils"
+	"github.com/nanih98/dungeons/logger"
 )
 
-// GetDNSServers is a function that return the nameservers of the given domain
-func GetDNSServers(domain string) []string {
+// // Data structure of the domain and the nameservers information
+type Data struct {
+	Domain      string        `json:"domain"`
+	Nameservers []Nameservers `json:"nameservers"`
+}
+
+// Nameservers struct with the info necessary to operate
+type Nameservers struct {
+	CNAME string `json:"cname"`
+	IPV4  string `json:"ipv4"`
+	IPV6  string `json:"ipv6"`
+}
+
+func GetIPV4(server string, log *logger.CustomLogger) string {
+	ip, err := net.LookupIP(server)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return fmt.Sprintf("%v", ip[0])
+}
+
+func GetIPV6(server string, log *logger.CustomLogger) string {
+	ip, err := net.LookupIP(server)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return fmt.Sprintf("%v", ip[1])
+}
+
+func (d *Data) PrintTabWriter() {
+	w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', tabwriter.Debug)
+	fmt.Fprintln(w, "Nameservers\t Ipv4\t Ipv6")
+
+	for _, nameserver := range d.Nameservers {
+		fmt.Fprintln(w, nameserver.CNAME, "\t", nameserver.IPV4, "\t", nameserver.IPV6)
+	}
+	w.Flush()
+}
+
+func GetNameservers(domain string) []string {
 	var nameservers []string
 	nameserver, _ := net.LookupNS(domain)
 	for _, ns := range nameserver {
@@ -18,33 +60,43 @@ func GetDNSServers(domain string) []string {
 	return nameservers
 }
 
-// GetDNSIPS is a function that return the nameserver Ipv4 and Ipv6
-func GetDNSIPS(nameserver string) (string, string) {
-	ip, err := net.LookupIP(nameserver)
-	if err != nil {
-		log.Println(err)
+func (d *Data) AppendNameserverData(server string, log *logger.CustomLogger) {
+	serverInfo := Nameservers{
+		CNAME: server,
+		IPV4:  GetIPV4(server, log),
+		IPV6:  GetIPV6(server, log),
 	}
-
-	if len(ip) > 1 {
-		return fmt.Sprintf("%s", ip[0]), fmt.Sprintf("%s", ip[1])
-	}
-	return fmt.Sprintf("%s", ip[0]), "Null"
+	d.Nameservers = append(d.Nameservers, serverInfo)
 }
 
-// Info prints information about the nameservers
-func Info(domain string) {
-	log.Printf("Checking nameservers for: %s \n\n", domain)
-	var entry []string
-	nameservers := GetDNSServers(domain)
-
-	w := utils.TabWriter()
-	fmt.Fprintln(w, "Nameserver\t Ipv4\t Ipv6")
-
-	for _, nameserver := range nameservers {
-		ipv4, ipv6 := GetDNSIPS(nameserver)
-		entry = append(entry, nameserver, ipv4, ipv6)
-		fmt.Fprintln(w, nameserver, "\t", ipv4, "\t", ipv6)
-		entry = nil
+func (d *Data) PrintJson(log *logger.CustomLogger) {
+	marshal, err := json.MarshalIndent(*d, "", "  ")
+	if err != nil {
+		log.Fatal(err)
 	}
-	w.Flush()
+	fmt.Printf("%s", marshal)
+}
+
+func Info(log *logger.CustomLogger, domain, outputmode string) {
+	target := new(Data)
+	nameservers := GetNameservers(domain)
+	var wg sync.WaitGroup
+
+	for _, server := range nameservers {
+		wg.Add(1)
+		go func(server string) {
+			defer wg.Done()
+			target.AppendNameserverData(server, log)
+		}(server)
+	}
+	wg.Wait()
+
+	switch outputmode {
+	case "tabwriter":
+		target.PrintTabWriter()
+	case "json":
+		target.PrintJson(log)
+	default:
+		log.Fatal(fmt.Errorf("Outputmode incorrect. Use -output json|tabwriter"))
+	}
 }

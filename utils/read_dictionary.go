@@ -2,15 +2,25 @@ package utils
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
-	"log"
 	"os"
+
+	"github.com/nanih98/dungeons/logger"
 )
 
-func ReadFile() []string {
-	log.Println("Reading subdomains from /usr/local/share/SecLists/Discovery/DNS/subdomains-top1million-5000.txt")
+// Read the dictionary and return a list of string with each entry
+func ReadDictionary(log *logger.CustomLogger, dictionary string) []string {
+	log.Info(fmt.Sprintf("Reading subdomains from %s", dictionary))
 	var words []string
-	readFile, err := os.Open("/usr/local/share/SecLists/Discovery/DNS/subdomains-top1million-5000.txt")
+
+	dicitonaryExists := checkFileExists(dictionary)
+
+	if !dicitonaryExists {
+		log.Fatal(fmt.Errorf("Credentials file %s don't exist", dictionary))
+	}
+
+	readFile, err := os.Open(dictionary)
 
 	if err != nil {
 		fmt.Println(err)
@@ -26,4 +36,9 @@ func ReadFile() []string {
 	readFile.Close()
 
 	return words
+}
+
+func checkFileExists(filePath string) bool {
+	_, err := os.Stat(filePath)
+	return !errors.Is(err, os.ErrNotExist)
 }
