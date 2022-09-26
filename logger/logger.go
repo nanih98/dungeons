@@ -3,12 +3,13 @@ package logger
 import (
 	"os"
 
+	"github.com/nanih98/dungeons/dto"
 	"github.com/sirupsen/logrus"
 )
 
 type CustomLogger struct {
-	//Log *logrus.Entry
-	Log *logrus.Logger
+	Log          *logrus.Entry
+	CustomFields *dto.Fields
 }
 
 func (c *CustomLogger) Info(msg string) {
@@ -27,25 +28,27 @@ func (c *CustomLogger) Debug(msg string) {
 	c.Log.Debug(msg)
 }
 
-func (c *CustomLogger) CustomFields() *logrus.Entry {
+func (c *CustomLogger) FuzzerFields() {
 	contextLogger := c.Log.WithFields(logrus.Fields{
-		"app": "dungeons",
+		"app":   c.CustomFields.App,
+		"test":  c.CustomFields.Test,
+		"test2": c.CustomFields.Test2,
 	})
-	return contextLogger
+	c.Log = contextLogger
 }
 
 func (c *CustomLogger) LogLevel(level string) {
 	switch level {
 	case "debug":
-		c.Log.SetLevel(logrus.DebugLevel)
+		c.Log.Logger.SetLevel(logrus.DebugLevel)
 	case "info":
-		c.Log.SetLevel(logrus.InfoLevel)
+		c.Log.Logger.SetLevel(logrus.InfoLevel)
 	case "warning":
-		c.Log.SetLevel(logrus.WarnLevel)
+		c.Log.Logger.SetLevel(logrus.WarnLevel)
 	case "error":
-		c.Log.SetLevel(logrus.ErrorLevel)
+		c.Log.Logger.SetLevel(logrus.ErrorLevel)
 	case "trace":
-		c.Log.SetLevel(logrus.TraceLevel)
+		c.Log.Logger.SetLevel(logrus.TraceLevel)
 	}
 }
 
@@ -57,5 +60,9 @@ func Logger() CustomLogger {
 		Hooks:     make(logrus.LevelHooks),
 	}
 
-	return CustomLogger{Log: log}
+	contextLogger := log.WithFields(logrus.Fields{
+		//Empty by default
+	})
+
+	return CustomLogger{Log: contextLogger, CustomFields: &dto.Fields{}}
 }

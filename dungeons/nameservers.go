@@ -78,6 +78,10 @@ func (d *Data) PrintJson(log *logger.CustomLogger) {
 }
 
 func Info(log *logger.CustomLogger, domain, outputmode string) {
+	log.CustomFields.App = "testing"
+
+	log.FuzzerFields()
+	log.Info("holaaa")
 	target := new(Data)
 	nameservers := GetNameservers(domain)
 	var wg sync.WaitGroup
