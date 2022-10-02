@@ -41,6 +41,15 @@ func GetIPV6(server string, log *logger.CustomLogger) string {
 	return fmt.Sprintf("%v", ip[1])
 }
 
+func GetNameservers(domain string) []string {
+	var nameservers []string
+	nameserver, _ := net.LookupNS(domain)
+	for _, ns := range nameserver {
+		nameservers = append(nameservers, ns.Host)
+	}
+	return nameservers
+}
+
 func (d *Data) PrintTabWriter() {
 	w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', tabwriter.Debug)
 	fmt.Fprintln(w, "Nameservers\t Ipv4\t Ipv6")
@@ -49,15 +58,6 @@ func (d *Data) PrintTabWriter() {
 		fmt.Fprintln(w, nameserver.CNAME, "\t", nameserver.IPV4, "\t", nameserver.IPV6)
 	}
 	w.Flush()
-}
-
-func GetNameservers(domain string) []string {
-	var nameservers []string
-	nameserver, _ := net.LookupNS(domain)
-	for _, ns := range nameserver {
-		nameservers = append(nameservers, ns.Host)
-	}
-	return nameservers
 }
 
 func (d *Data) AppendNameserverData(server string, log *logger.CustomLogger) {
@@ -82,6 +82,7 @@ func Info(log *logger.CustomLogger, domain, outputmode string) {
 
 	log.FuzzerFields()
 	log.Info("holaaa")
+
 	target := new(Data)
 	nameservers := GetNameservers(domain)
 	var wg sync.WaitGroup
