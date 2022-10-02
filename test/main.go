@@ -45,7 +45,7 @@ func CustomResolver(nameserver string) *net.Resolver {
 
 func main() {
 	// Ejemplo de subdominios a consultar, pueden ser + de 10mil
-	//var subdomains = []string{"status.edenor.com", "test.edenor.com", "www.edenor.com"}
+	//var subdomains = []string{"status.google.com", "test.google.com", "www.google.com"}
 
 	subdomains := ReadFile()
 
@@ -59,7 +59,7 @@ func main() {
 	resolver := CustomResolver("205.251.197.168:53")
 
 	for _, subdomain := range subdomains {
-		domain := subdomain + ".edenor.com"
+		domain := subdomain + ".google.com"
 		ip, err := resolver.LookupHost(context.Background(), domain)
 		if err != nil {
 			fmt.Println(err)

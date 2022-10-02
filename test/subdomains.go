@@ -80,7 +80,7 @@ func resolver(subdomain string) (string, error) {
 	// 	},
 	// }
 
-	fullDomain := subdomain + ".edenor.com"
+	fullDomain := subdomain + ".google.com"
 
 	ip, err := r.LookupHost(context.Background(), fullDomain)
 
