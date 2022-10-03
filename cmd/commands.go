@@ -30,13 +30,14 @@ func Info(domain *string, output *string, log *logger.CustomLogger, level *strin
 	}
 }
 
-func Fuzz(domain *string, workers *int, dictionary *string, log *logger.CustomLogger, level *string) *cobra.Command {
+func Fuzz(domain *string, workers *int, dictionary *string, log *logger.CustomLogger, level *string, logFormat *string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "fuzz",
 		Short: "Start massive requests to all the nameservers.",
 		Long:  "Start massive requests to all the nameservers of the given domain using a dictionary",
 		Run: func(cmd *cobra.Command, args []string) {
 			log.LogLevel(*level)
+			log.LogFormat(*logFormat)
 			nameservers := dungeons.GetNameservers(*domain)
 			subdomains := utils.ReadDictionary(log, *dictionary)
 			log.Info(fmt.Sprintf("Using %d workers", *workers))
@@ -47,7 +48,7 @@ func Fuzz(domain *string, workers *int, dictionary *string, log *logger.CustomLo
 				wg.Add(1)
 				go func(subdomains []string, ip string) {
 					defer wg.Done()
-					dungeons.Fetch(*domain, subdomains, ip, *workers)
+					dungeons.Fetch(log, *domain, subdomains, ip, *workers, *logFormat)
 				}(subdomains, ip)
 			}
 			wg.Wait()

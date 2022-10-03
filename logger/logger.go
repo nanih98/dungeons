@@ -30,9 +30,13 @@ func (c *CustomLogger) Debug(msg string) {
 
 func (c *CustomLogger) FuzzerFields() {
 	contextLogger := c.Log.WithFields(logrus.Fields{
-		"app":   c.CustomFields.App,
-		"test":  c.CustomFields.Test,
-		"test2": c.CustomFields.Test2,
+		"app":     c.CustomFields.App,
+		"server":  c.CustomFields.Server,
+		"target":  c.CustomFields.Target,
+		"domain":  c.CustomFields.Domain,
+		"status":  c.CustomFields.Status,
+		"seconds": c.CustomFields.Seconds,
+		"ips":     c.CustomFields.DomainIps,
 	})
 	c.Log = contextLogger
 }
@@ -52,12 +56,22 @@ func (c *CustomLogger) LogLevel(level string) {
 	}
 }
 
+func (c *CustomLogger) LogFormat(logFormat string) {
+	switch logFormat {
+	case "text":
+		c.Log.Logger.SetFormatter(&logrus.TextFormatter{DisableColors: false,
+			FullTimestamp: true})
+	case "json":
+		c.Log.Logger.SetFormatter(&logrus.JSONFormatter{})
+	}
+}
+
 // Logger function
 func Logger() CustomLogger {
 	var log = &logrus.Logger{
-		Out:       os.Stderr,
-		Formatter: new(logrus.JSONFormatter),
-		Hooks:     make(logrus.LevelHooks),
+		Out: os.Stderr,
+		//Formatter: new(logrus.JSONFormatter),
+		Hooks: make(logrus.LevelHooks),
 	}
 
 	contextLogger := log.WithFields(logrus.Fields{
