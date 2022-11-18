@@ -11,7 +11,7 @@ import (
 
 // Read the dictionary and return a list of string with each entry
 func ReadDictionary(log *logger.CustomLogger, dictionary string) []string {
-	log.Info(fmt.Sprintf("Reading subdomains from %s", dictionary))
+	log.Debug(fmt.Sprintf("Reading subdomains from %s", dictionary))
 	var words []string
 
 	dicitonaryExists := checkFileExists(dictionary)

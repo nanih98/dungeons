@@ -30,13 +30,11 @@ func (c *CustomLogger) Debug(msg string) {
 
 func (c *CustomLogger) FuzzerFields() {
 	contextLogger := c.Log.WithFields(logrus.Fields{
-		"app":     c.CustomFields.App,
-		"server":  c.CustomFields.Server,
-		"target":  c.CustomFields.Target,
-		"domain":  c.CustomFields.Domain,
-		"status":  c.CustomFields.Status,
-		"seconds": c.CustomFields.Seconds,
-		"ips":     c.CustomFields.DomainIps,
+		"fulldomain": c.CustomFields.FullDomain,
+		"status":     c.CustomFields.Status,
+		"ips":        c.CustomFields.Ips,
+		"nameserver": c.CustomFields.Nameserver,
+		"recordTime": c.CustomFields.RecordTime,
 	})
 	c.Log = contextLogger
 }
@@ -69,8 +67,7 @@ func (c *CustomLogger) LogFormat(logFormat string) {
 // Logger function
 func Logger() CustomLogger {
 	var log = &logrus.Logger{
-		Out: os.Stderr,
-		//Formatter: new(logrus.JSONFormatter),
+		Out:   os.Stderr,
 		Hooks: make(logrus.LevelHooks),
 	}
 
